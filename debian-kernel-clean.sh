@@ -34,10 +34,10 @@ current_kernel=$(uname -r)
 
 # Find installed kernel image packages, excluding the currently running kernel.
 # Matches linux-image-<version> but not linux-image-generic or other meta-packages.
-available_kernels=$(dpkg --list | awk '/^ii\s+linux-image-[0-9]/{print $2}' | grep -v "$current_kernel" | sort -V)
+available_kernels=$(dpkg --list | awk '/^ii\s+linux-image-[0-9]/{print $2}' | grep -v "$current_kernel" | sort -V || true)
 
 # Also find matching linux-headers packages for later cleanup
-available_headers=$(dpkg --list | awk '/^ii\s+linux-headers-[0-9]/{print $2}' | grep -v "$current_kernel" | sort -V)
+available_headers=$(dpkg --list | awk '/^ii\s+linux-headers-[0-9]/{print $2}' | grep -v "$current_kernel" | sort -V || true)
 
 header_info
 
