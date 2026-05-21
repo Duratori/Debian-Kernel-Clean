@@ -33,11 +33,11 @@ fi
 current_kernel=$(uname -r)
 
 # Find installed kernel image packages, excluding the currently running kernel.
-# Matches linux-image-<version> but not linux-image-generic or other meta-packages.
-available_kernels=$(dpkg --list | awk '/^ii\s+linux-image-[0-9]/{print $2}' | grep -v "$current_kernel" | sort -V || true)
+# Matches linux-image-<version> (standard Debian) and raspberrypi-kernel-<version> (Raspberry Pi OS).
+available_kernels=$(dpkg --list | awk '/^ii[ \t]+(linux-image-[0-9]|raspberrypi-kernel[ \t])/{print $2}' | grep -v "$current_kernel" | sort -V || true)
 
 # Also find matching linux-headers packages for later cleanup
-available_headers=$(dpkg --list | awk '/^ii\s+linux-headers-[0-9]/{print $2}' | grep -v "$current_kernel" | sort -V || true)
+available_headers=$(dpkg --list | awk '/^ii[ \t]+(linux-headers-[0-9]|raspberrypi-kernel-headers)/{print $2}' | grep -v "$current_kernel" | sort -V || true)
 
 header_info
 
@@ -103,7 +103,12 @@ for pkg in "${packages_to_remove[@]}"; do
   fi
 done
 
-# Clean up and update GRUB
+# Clean up and update bootloader
 echo -e "${YW}Cleaning up...${CL}"
-apt-get autoremove -y >/dev/null 2>&1 && update-grub >/dev/null 2>&1
-echo -e "${GN}Cleanup and GRUB update complete.${CL}"
+apt-get autoremove -y >/dev/null 2>&1
+if command -v update-grub &>/dev/null; then
+  update-grub >/dev/null 2>&1
+  echo -e "${GN}Cleanup and GRUB update complete.${CL}"
+else
+  echo -e "${GN}Cleanup complete. (No GRUB detected — skipped bootloader update.)${CL}"
+fi
